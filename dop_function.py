@@ -10,30 +10,212 @@ def ERR(st):
 	print(st)
 	sys.exit(1)
 
-def predict(l_km, th0, th1):
-	lst = []
-	for i in l_km:
-		lst.append(estimatePrice(i, th0, th1))
-	return lst
+
+def MSE(have, must):
+
+	lens = len(have) - 1
+	e = 0
+	while lens >= 0:
+		rz = have[lens] - must[lens]
+		e += (rz * rz)
+		lens -= 1
+	e = e / len(have)
+	return e
+
+def RMSE(have, must):
+	return (MSE(have, must)**0.5)
+
 def estimatePrice(mileage,th0, th1):
 	return th0 + (th1 * mileage)
 
-def trainModel(l_km, l_price, learningRate,th0, th1):
-	lens = len(l_km)
+
+def predict(x, th0, th1):
+	lst = []
+	for i in x:
+		p =  th0 + (th1 * i)
+		lst.append(p)
+	return lst
+
+
+
+def predict_MSE(x,y, th0, th1):
+	ans = 0
+	i = 0
+	lens = len(x)
+	while i < lens:
+		p =  th0 + (th1 * x[i])
+		ans += (p-y[i])**2
+		i += 1
+
+	return ans / i
+
+
+
+def from_input_to_int():
+	learning_rate = 0.1
+	bad = True
+	while bad:
+		# tmp = raw_input('\ninput learning rate > 0: ')
+
+		tmp = input('\ninput learning rate > 0: ')##python3
+		# tmp = raw_input('\ninput learning rate > 0: ')
+		try:
+			float(tmp)
+		except Exception as e:
+			learning_rate = 0.1
+			print ('learning_rate = 0.1')
+			return learning_rate
+		if float(tmp) >= 0 and float(tmp) < 10:
+			return float(tmp)
+		else:
+			print ('Error: g > 0 and g < 10')
+	return learning_rate
+
+# -299.61538461538464 -105557.69230769231
+
+def give_gradient(x,y,learning_rate, th0, th1):
+	lens = len(x)
+	i = 0
+	sums0 = 0
+	sums1 = 0
+	while i < lens:
+		tmp = (th0 + th1*x[i] - y[i])
+		# print('tmp =',tmp,' tmp*x[i] =',tmp*x[i])
+		sums0 += tmp
+		sums1 += (tmp * x[i])
+		i += 1
+	# print('sums0 ',sums0,' sums1 ',sums1)
+	
+	n_th0 = (sums0/i)
+	n_th1 = (sums1/i)
+	# print('n_th0 = ',n_th0,' n_th0 = ', n_th1)
+	return n_th0, n_th1
+
+def return_N(n_th0, n_th1, th0,th1, x,y):
+	# print('\n\nreturn_N')
+	err = predict_MSE(x, y, th0, th1)
+	# print('err= ',err)
+	N = 1
+	
+	now_err = predict_MSE(x, y, th0 - N*( n_th0), th1 - N*( n_th1))
+	# print('now_err',now_err)
+	if now_err < err:
+		return N
+	else:
+		N_smll = N / 2
+		now_err_smll = predict_MSE(x, y, th0 - N_smll*( n_th0), th1 - N_smll*( n_th1))
+		
+		# print('smll = ', now_err_smll)
+
+		if now_err_smll < now_err:
+			while now_err_smll >= err:
+				N_tmp = N_smll / 2
+				tmp = predict_MSE(x, y, th0 - N_tmp*( n_th0), th1 - N_tmp*( n_th1))
+				# print('	tmp = ', tmp)
+				if tmp < now_err_smll:
+					now_err_smll = tmp
+					N_smll = N_tmp
+				else:
+					return N_smll
+			return N_smll
+		else:
+			print("\n\n\n\n\n\n\n\n\n\n\n\nHz\n\n\n\n\n\n\n\n\n\n\n\n")
+			exit()
+			while now_err_smll >= err:
+				N_tmp = N_smll * 2
+				tmp = predict_MSE(x, y, th0 - N_tmp*( n_th0), th1 - N_tmp*( n_th1))
+				# print('	tmp = ', tmp)
+				if tmp < now_err_smll:
+					now_err_smll = tmp
+					N_smll = N_tmp
+				else:
+					return N_smll
+			return N_smll
+import random as rd
+
+def trainModel(x, y, learning_rate,th0, th1):
+	
+	# if th0 == 0 and th1 == 0:
+	# 	minx = x.index(min(x))
+	# 	maxx = x.index(max(x))
+	# 	print('->',minx)
+	# 	x1 = x[minx]
+	# 	x2 = x[maxx]
+	# 	y1 = y[minx]
+	# 	y2 = y[maxx]
+	# 	th0 = (x2*y1-x1*y2)/(x2-x1)
+	# 	th1 = (y2-y1)
+
+
+	err = predict_MSE(x, y, th0, th1)
+	lerr = err + 1
+	while err > 0.0000001:
+		n_th0, n_th1 = give_gradient(x,y, learning_rate, th0,th1)
+		N = return_N(n_th0, n_th1, th0,th1, x,y)
+		# print('N',N)
+		# print('th0 = ',th0,' th1', th1)
+		th0 = th0 - N*( n_th0)
+		th1 = th1 - N*( n_th1)
+		# print('th = ',th0, th1)
+
+		lerr = err
+		err = predict_MSE(x, y, th0, th1)
+		# print('err= ',err)
+		if err < lerr or err/lerr < 0.000001:
+			lerr = err
+		else:
+			# print(err)
+			# print(lerr)
+			break
+		# try:
+		# 	z = float(z)
+		# 	N = z
+		# except Exception as e:
+		# 	pass
+
+		# z = input(':\n')
+	# print('err= ',err)
+	# exit()
+	return th0, th1
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#####################
+def trainModel_old(x, y, learningRate,th0, th1):
+	lens = len(x)
 	sums0 = 0
 	sums1 = 0
 	i = 0
 	while i < lens:
-		tmp = estimatePrice(l_km[i], th0, th1) - l_price[i]
+		tmp = (estimatePrice(x[i], th0, th1) - y[i])
+		print ('pr =',tmp, sums1)
 		sums0 += tmp
-		sums1 += (tmp * l_km[i])
+		sums1 += (tmp * x[i])
 		i += 1
 
 	th0 = learningRate * (sums0/i)
 	th1 = learningRate * (sums1/i)
-
+	print('--->',th0,th1)
 	return th0, th1
-
 
 def graph(l_km, l_price, th0, th1):
 	root = T.Tk()
@@ -46,16 +228,20 @@ def graph(l_km, l_price, th0, th1):
 	minn_price = min(l_price)
 	
 	rz = maxx_km - minn_km
+	if rz == 0:
+		ERR('Error: max - min = 0')
 	rz /= 20
 	i = 10
 	start = minn_km
 	while start < maxx_km-rz-1:
-		canv.create_text(30,i,text = int(start))
-		canv.create_line(0,i,6,i,width=2, fill = 'black')
+		canv.create_text(30,1000-i,text = int(start))
+		canv.create_line(0,1000-i,6,i,width=2, fill = 'black')
 		start += rz
 		i += 50
 
 	rz = maxx_price - minn_price
+	if rz == 0:
+		ERR('Error: max - min = 0')
 	rz /= 10
 	i = 100
 	start = minn_price + rz
@@ -68,7 +254,7 @@ def graph(l_km, l_price, th0, th1):
 	lens = len(l_price)
 	i = 0
 	while i < lens:
-		y = (float(l_km[i] - minn_km) / (maxx_km - minn_km))*1000
+		y = 1000-((float(l_km[i] - minn_km) / (maxx_km - minn_km))*1000)
 		x = (float(l_price[i] - minn_price) / (maxx_price - minn_price))*1000
 		canv.create_oval(x, y, x + 10, y + 10, fill = 'black')
 		i += 1
@@ -76,35 +262,26 @@ def graph(l_km, l_price, th0, th1):
 	pr = predict(l_km, th0, th1)
 	maxx_price = max(pr)
 	minn_price = min(pr)
+	if maxx_price - minn_price == 0:
+		ERR('Error: predicted max - min = 0')
 	lens = len(l_price)
 	i = 0
 	lsty = []
 	lstx = []
 	while i < lens:
-		y = (float(l_km[i] - minn_km) / (maxx_km - minn_km))*1000
+		y = 1000-((float(l_km[i] - minn_km) / (maxx_km - minn_km))*1000)
 		x = (float(pr[i] - minn_price) / (maxx_price - minn_price))*1000
+		print('x =', x, 'pr = ',pr[i], 'must=',l_price[i])
 		lsty.append(y)
 		lstx.append(x)
+		canv.create_oval(x, y, x + 10, y + 10, fill = 'orange')
 		i += 1
-	minx = lstx.index(min(lstx))
-	maxx = lstx.index(max(lstx))
+	# minx = lstx.index(min(lstx))
+	# maxx = lstx.index(max(lstx))
 
-	canv.create_line(lstx[minx],lsty[minx],lstx[maxx],lsty[maxx],width=5, fill = 'orange')
+	# canv.create_line(lstx[minx],lsty[minx],lstx[maxx],lsty[maxx],width=5, fill = 'orange')
 	canv.pack()
 	root.mainloop() 
-
-def MSE(have, must):
-	lens = len(have) - 1
-	e = 0
-	while lens >= 0:
-		rz = have[lens] - must[lens]
-		e += (rz * rz)
-		lens -= 1
-	e = e / len(have)
-	return e
-
-def RMSE(have, must):
-	return (MSE(have, must)**0.5)
 
 def load_theta():
 	th0, th1 = 0, 0
