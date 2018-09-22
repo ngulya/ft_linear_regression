@@ -129,7 +129,7 @@ def trainModel_auto_l_r(x, y,th0, th1):
 		th1 = th1 - N*( n_th1)
 		lerr = err
 		err = predict_MSE(x, y, th0, th1)
-		print('err=', err)
+		print('err=', err, 'N=',N)
 		if err < lerr or err/lerr < 0.000001:
 			lerr = err
 		else:
@@ -137,29 +137,114 @@ def trainModel_auto_l_r(x, y,th0, th1):
 	return th0, th1
 
 
+def give_gradient2(x,y,th0, th1):
+	lens = len(x)
+	i = 0
+	sums0 = 0
+	sums1 = 0
+	while i < lens:
+		tmp = (th0 + th1*x[i] - y[i])
+		# print('tmp=',tmp,'tmp*xi=' ,tmp*x[i])
+		sums0 += tmp
+		sums1 += (tmp * x[i])
+		i += 1
+
+	# print('sums0',sums0,'sums1', sums1)
+	n_th0 = (sums0/i)
+	n_th1 = (sums1/i)
+	
+	return n_th0, n_th1
+
+import matplotlib.pyplot as plt
+
+
+
 
 def trainModel(x, y, learning_rate,th0, th1):
 
-	try:
+
+	# if th0 == 0 and th1 == 0:
+	# 	minx = x.index(min(x))
+	# 	maxx = x.index(max(x))
+	# 	print('->',minx)
+	# 	x1 = x[minx]
+	# 	x2 = x[maxx]
+	# 	y1 = y[minx]
+	# 	y2 = y[maxx]
+	# 	th0 = ((-x1*(y2-y1))/(x2-x1)) + y1
+	# 	th1 = (y2-y1)/(x2-x1)
+
+	print('th0 = ',th0, 'th1=',th1)
+	err = predict_MSE(x, y, th0, th1)
+	print('err=', err)
+	print('\n\n')
+	plt.scatter(x, y)
+	pr = predict(x, th0, th1)
+	plt.scatter(x, pr,c='g')
+	plt.show()
+	lerr = err + 1
+
+	# th0 = 10000
+	# N = 0.00000000001
+	N = 0.1
+	i = 1
+	while err > 0.00001:
+		# if i > 3:
+		# 	N = 1
+		n_th0, n_th1 = give_gradient2(x,y, th0,th1)
+		print('n_th0 = ',n_th0, 'n_th1=',n_th1)
+		
+
+		th0 = th0 - N*( n_th0)
+		th1 = th1 - N*( n_th1)
+		print('th0 = ',th0, 'th1=',th1)
+		lerr = err
+		# if err < 0.0901:
+		# 	# print('BSFKJASGHKFGBJAS')
+		# 	N =0.01
 		err = predict_MSE(x, y, th0, th1)
-		lerr = err + 1
-		N = learning_rate
-		while err > 0.00001:
-			n_th0, n_th1 = give_gradient(x,y, th0,th1)
-			th0 = th0 - N*( n_th0)
-			th1 = th1 - N*( n_th1)
-			lerr = err
-			err = predict_MSE(x, y, th0, th1)
-			print('err=', err)
-			if err/lerr < 0.000001:
-				print ('err/last_err < 0.000001')
-			if err < lerr:
-				lerr = err
-			else:
-				break
-	except:
-		print('\nException')
+		# if  err > 1e+30:
+		# 	ERR('to mush N')
+		print('err=', err,'N=',N,i )
+		if i > 10000:
+			break
+		# if err/lerr < 0.000001:
+		# 	print ('err/last_err < 0.000001')
+		# if err < lerr:
+		# 	lerr = err
+		# else:
+		# 	break
+		i += 1
+		# a = input(':')
+		print('\n')
+		plt.scatter(x, y)
+		pr = predict(x, th0, th1)
+		plt.scatter(x, pr,c='g')
+		plt.show()
 	return th0, th1
+
+# def trainModel(x, y, learning_rate,th0, th1):
+
+# 	try:
+# 		err = predict_MSE(x, y, th0, th1)
+# 		lerr = err + 1
+# 		N = learning_rate
+# 		while err > 0.00001:
+# 			n_th0, n_th1 = give_gradient(x,y, th0,th1)
+# 			th0 = th0 - N*( n_th0)
+# 			th1 = th1 - N*( n_th1)
+# 			lerr = err
+# 			err = predict_MSE(x, y, th0, th1)
+# 			print('err=', err)
+# 			if err/lerr < 0.000001:
+# 				print ('err/last_err < 0.000001')
+# 			if err < lerr:
+# 				lerr = err
+# 			else:
+# 				break
+# 	except:
+# 		print('\nException')
+# 	return th0, th1
 
 
 
@@ -181,13 +266,15 @@ def graph(l_km, l_price, th0, th1):
 		ERR('Error: max - min = 0')
 	rz /= 20
 	i = 10
+
 	start = minn_km
 	while start < maxx_km-rz-1:
+		# print('start',start)
 		canv.create_text(30,1000-i,text = int(start))
 		canv.create_line(0,1000-i,6,i,width=2, fill = 'black')
 		start += rz
 		i += 50
-
+	# exit()
 	rz = maxx_price - minn_price
 	if rz == 0:
 		ERR('Error: max - min = 0')
@@ -281,8 +368,8 @@ def return_list_from_data(name_csv):
 	for line in in_file.readlines():
 		try:
 			line = line.split(',')
-			int(line[0])
-			int(line[1])
+			float(line[0])
+			float(line[1])
 		except Exception as e:
 			if frst != 0:
 				ERR('Error: num str = ' + str(frst + 1))
