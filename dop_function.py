@@ -71,47 +71,35 @@ def from_input_to_int():
 			print ('Error: g > 0 and g < 10')
 	return learning_rate
 
-# -299.61538461538464 -105557.69230769231
 
-def give_gradient(x,y,learning_rate, th0, th1):
+def give_gradient(x,y, th0, th1):
 	lens = len(x)
 	i = 0
 	sums0 = 0
 	sums1 = 0
 	while i < lens:
 		tmp = (th0 + th1*x[i] - y[i])
-		# print('tmp =',tmp,' tmp*x[i] =',tmp*x[i])
 		sums0 += tmp
 		sums1 += (tmp * x[i])
 		i += 1
-	# print('sums0 ',sums0,' sums1 ',sums1)
-	
 	n_th0 = (sums0/i)
 	n_th1 = (sums1/i)
-	# print('n_th0 = ',n_th0,' n_th0 = ', n_th1)
 	return n_th0, n_th1
 
 def return_N(n_th0, n_th1, th0,th1, x,y):
-	# print('\n\nreturn_N')
+
 	err = predict_MSE(x, y, th0, th1)
-	# print('err= ',err)
 	N = 1
-	
 	now_err = predict_MSE(x, y, th0 - N*( n_th0), th1 - N*( n_th1))
-	# print('now_err',now_err)
 	if now_err < err:
 		return N
 	else:
 		N_smll = N / 2
 		now_err_smll = predict_MSE(x, y, th0 - N_smll*( n_th0), th1 - N_smll*( n_th1))
-		
-		# print('smll = ', now_err_smll)
-
 		if now_err_smll < now_err:
 			while now_err_smll >= err:
 				N_tmp = N_smll / 2
 				tmp = predict_MSE(x, y, th0 - N_tmp*( n_th0), th1 - N_tmp*( n_th1))
-				# print('	tmp = ', tmp)
 				if tmp < now_err_smll:
 					now_err_smll = tmp
 					N_smll = N_tmp
@@ -119,12 +107,9 @@ def return_N(n_th0, n_th1, th0,th1, x,y):
 					return N_smll
 			return N_smll
 		else:
-			print("\n\n\n\n\n\n\n\n\n\n\n\nHz\n\n\n\n\n\n\n\n\n\n\n\n")
-			exit()
 			while now_err_smll >= err:
 				N_tmp = N_smll * 2
 				tmp = predict_MSE(x, y, th0 - N_tmp*( n_th0), th1 - N_tmp*( n_th1))
-				# print('	tmp = ', tmp)
 				if tmp < now_err_smll:
 					now_err_smll = tmp
 					N_smll = N_tmp
@@ -133,89 +118,53 @@ def return_N(n_th0, n_th1, th0,th1, x,y):
 			return N_smll
 import random as rd
 
-def trainModel(x, y, learning_rate,th0, th1):
-	
-	# if th0 == 0 and th1 == 0:
-	# 	minx = x.index(min(x))
-	# 	maxx = x.index(max(x))
-	# 	print('->',minx)
-	# 	x1 = x[minx]
-	# 	x2 = x[maxx]
-	# 	y1 = y[minx]
-	# 	y2 = y[maxx]
-	# 	th0 = (x2*y1-x1*y2)/(x2-x1)
-	# 	th1 = (y2-y1)
-
+def trainModel_auto_l_r(x, y,th0, th1):
 
 	err = predict_MSE(x, y, th0, th1)
 	lerr = err + 1
 	while err > 0.0000001:
-		n_th0, n_th1 = give_gradient(x,y, learning_rate, th0,th1)
+		n_th0, n_th1 = give_gradient(x,y, th0,th1)
 		N = return_N(n_th0, n_th1, th0,th1, x,y)
-		# print('N',N)
-		# print('th0 = ',th0,' th1', th1)
 		th0 = th0 - N*( n_th0)
 		th1 = th1 - N*( n_th1)
-		# print('th = ',th0, th1)
-
 		lerr = err
 		err = predict_MSE(x, y, th0, th1)
-		# print('err= ',err)
+		print('err=', err)
 		if err < lerr or err/lerr < 0.000001:
 			lerr = err
 		else:
-			# print(err)
-			# print(lerr)
 			break
-		# try:
-		# 	z = float(z)
-		# 	N = z
-		# except Exception as e:
-		# 	pass
+	return th0, th1
 
-		# z = input(':\n')
-	# print('err= ',err)
-	# exit()
+
+
+def trainModel(x, y, learning_rate,th0, th1):
+
+	try:
+		err = predict_MSE(x, y, th0, th1)
+		lerr = err + 1
+		N = learning_rate
+		while err > 0.00001:
+			n_th0, n_th1 = give_gradient(x,y, th0,th1)
+			th0 = th0 - N*( n_th0)
+			th1 = th1 - N*( n_th1)
+			lerr = err
+			err = predict_MSE(x, y, th0, th1)
+			print('err=', err)
+			if err/lerr < 0.000001:
+				print ('err/last_err < 0.000001')
+			if err < lerr:
+				lerr = err
+			else:
+				break
+	except:
+		print('\nException')
 	return th0, th1
 
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-#####################
-def trainModel_old(x, y, learningRate,th0, th1):
-	lens = len(x)
-	sums0 = 0
-	sums1 = 0
-	i = 0
-	while i < lens:
-		tmp = (estimatePrice(x[i], th0, th1) - y[i])
-		print ('pr =',tmp, sums1)
-		sums0 += tmp
-		sums1 += (tmp * x[i])
-		i += 1
-
-	th0 = learningRate * (sums0/i)
-	th1 = learningRate * (sums1/i)
-	print('--->',th0,th1)
-	return th0, th1
 
 def graph(l_km, l_price, th0, th1):
 	root = T.Tk()
