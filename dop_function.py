@@ -4,7 +4,7 @@ from time import time
 import sys
 import numpy as np
 import Tkinter as T
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 
 
 def ERR(st):
@@ -57,14 +57,16 @@ def from_input_to_int():
 	while bad:
 		# tmp = raw_input('\ninput learning rate > 0: ')
 
-		tmp = input('\ninput learning rate > 0: ')##python3
-		# tmp = raw_input('\ninput learning rate > 0: ')
+		# tmp = input('\ninput learning rate > 0: ')##python3
+		tmp = raw_input('\ninput learning rate > 0 or learning_rate == -1: ')
 		try:
 			float(tmp)
 		except Exception as e:
 			learning_rate = 0.1
 			print ('learning_rate = 0.1')
 			return learning_rate
+		if float(tmp) == -1:
+			return -1
 		if float(tmp) >= 0 and float(tmp) < 10:
 			return float(tmp)
 		else:
@@ -168,9 +170,10 @@ def trainModel(x, y, learning_rate,th0, th1):
 	# 	th0 = ((-x1*(y2-y1))/(x2-x1)) + y1
 	# 	th1 = (y2-y1)/(x2-x1)
 
-	print('th0 = ',th0, 'th1=',th1)
+	print 'For stop study input Y-Yes'
 	err = predict_MSE(x, y, th0, th1)
-	print('err=', err)
+	# print 'err=', err
+
 	# print('\n\n')
 
 	i = 1
@@ -183,16 +186,16 @@ def trainModel(x, y, learning_rate,th0, th1):
 		if  err > 1e+30:
 			ERR('Too mush learning rate')
 		print 'err=', err
-		if i > 20:
-			i = 0
-			plt.scatter(x, y)
-			pr = predict(x, th0, th1)
-			plt.scatter(x, pr,c='g')
-			plt.show()
-		i += 1
-		# a = raw_input(':')
-		# if a == 'y':
-			# break
+		# if i > 20:
+		# 	i = 0
+		# 	plt.scatter(x, y)
+		# 	pr = predict(x, th0, th1)
+		# 	plt.scatter(x, pr,c='g')
+		# 	plt.show()
+		# i += 1
+		a = raw_input(':')
+		if a == 'y' or a == 'Y':
+			break
 		# print('\n')
 		# plt.scatter(x, y)
 		# pr = predict(x, th0, th1)
@@ -231,7 +234,9 @@ def graph(l_x, l_y, th0, th1, maxx_x, minn_x, maxx_y, minn_y, line):
 			canv.create_text(start * 1000,980,text = int(txt))
 			canv.create_line(start * 1000,994,start * 1000,1000,width=2, fill = 'black')
 			start += 0.1
-
+		# canv.pack()
+		# root.mainloop() 
+		# exit()
 		lens = len(l_y)
 		i = 0
 		while i < lens:
@@ -262,28 +267,39 @@ def graph(l_x, l_y, th0, th1, maxx_x, minn_x, maxx_y, minn_y, line):
 	
 def load_theta():
 	th0, th1 = 0, 0
+	maxx_x = 0
+	minn_x = 0
+	maxx_y = 0
+	minn_y = 0
 	try:
 		in_file = open('theta', "r")
 	except:
-		return 0,0,False
+		return 0,0,0,0,0,0,False
 
 	zr = 0
 	for line in in_file.readlines():
 		try:
 			float(line)
 		except Exception as e:
-			print('No theta')
-			return 0,0,False
+			ERR('Unvalid theta file: ' + str(zr + 1))
 		else:
 			if zr == 0:
 				th0 = float(line)	
 			elif zr == 1:
 				th1 = float(line)
+			elif zr == 2:
+				maxx_x = float(line)
+			elif zr == 3:
+				minn_x = float(line)
+			elif zr == 4:
+				maxx_y = float(line)
+			elif zr == 5:
+				minn_y = float(line)
 			else:
-				print('No theta')
-				return 0,0,False
+				print('Error: read theta')
+				return 0,0, maxx_x,minn_x,maxx_y,minn_y,False
 			zr += 1
-	return th0, th1, True
+	return th0, th1, maxx_x,minn_x,maxx_y,minn_y,True
 
 
 def save_theta(th0, th1,maxx_x, minn_x, maxx_y, minn_y):
@@ -327,6 +343,4 @@ def return_list_from_data(name_csv):
 	if len(l_x) == 0 or len(l_y) == 0 or len(l_y) != len(l_x):
 		ERR('Error: zero size')
 	return l_x, l_y
-
-
 
