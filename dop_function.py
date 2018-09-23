@@ -1,11 +1,12 @@
-#!/usr/bin/env python3
-########PYTHON2
+#!/usr/bin/env python
 
 from time import time
 import sys
 import numpy as np
-import tkinter as T
-# import Tkinter as T 2
+import Tkinter as T
+import matplotlib.pyplot as plt
+
+
 def ERR(st):
 	print(st)
 	sys.exit(1)
@@ -35,7 +36,6 @@ def predict(x, th0, th1):
 		p =  th0 + (th1 * i)
 		lst.append(p)
 	return lst
-
 
 
 def predict_MSE(x,y, th0, th1):
@@ -129,7 +129,7 @@ def trainModel_auto_l_r(x, y,th0, th1):
 		th1 = th1 - N*( n_th1)
 		lerr = err
 		err = predict_MSE(x, y, th0, th1)
-		print('err=', err, 'N=',N)
+		print 'err =', err, 'learning rate =',N
 		if err < lerr or err/lerr < 0.000001:
 			lerr = err
 		else:
@@ -144,19 +144,14 @@ def give_gradient2(x,y,th0, th1):
 	sums1 = 0
 	while i < lens:
 		tmp = (th0 + th1*x[i] - y[i])
-		# print('tmp=',tmp,'tmp*xi=' ,tmp*x[i])
 		sums0 += tmp
 		sums1 += (tmp * x[i])
 		i += 1
 
-	# print('sums0',sums0,'sums1', sums1)
 	n_th0 = (sums0/i)
 	n_th1 = (sums1/i)
 	
 	return n_th0, n_th1
-
-import matplotlib.pyplot as plt
-
 
 
 
@@ -178,146 +173,106 @@ def trainModel(x, y, learning_rate,th0, th1):
 	err = predict_MSE(x, y, th0, th1)
 	print('err=', err)
 	print('\n\n')
-	plt.scatter(x, y)
-	pr = predict(x, th0, th1)
-	plt.scatter(x, pr,c='g')
-	plt.show()
-	lerr = err + 1
+	# plt.scatter(x, y)
+	# pr = predict(x, th0, th1)
+	# plt.scatter(x, pr,c='g')
+	# plt.show()
 
-	# th0 = 10000
-	# N = 0.00000000001
-	N = 0.1
 	i = 1
 	while err > 0.00001:
-		# if i > 3:
-		# 	N = 1
 		n_th0, n_th1 = give_gradient2(x,y, th0,th1)
-		print('n_th0 = ',n_th0, 'n_th1=',n_th1)
-		
-
-		th0 = th0 - N*( n_th0)
-		th1 = th1 - N*( n_th1)
-		print('th0 = ',th0, 'th1=',th1)
-		lerr = err
-		# if err < 0.0901:
-		# 	# print('BSFKJASGHKFGBJAS')
-		# 	N =0.01
+		th0 = th0 - learning_rate*( n_th0)
+		th1 = th1 - learning_rate*( n_th1)
+		# print('th0 = ',th0, 'th1=',th1)
 		err = predict_MSE(x, y, th0, th1)
-		# if  err > 1e+30:
-		# 	ERR('to mush N')
-		print('err=', err,'N=',N,i )
-		if i > 10000:
-			break
-		# if err/lerr < 0.000001:
-		# 	print ('err/last_err < 0.000001')
-		# if err < lerr:
-		# 	lerr = err
-		# else:
-		# 	break
+		if  err > 1e+30:
+			ERR('Too mush learning rate')
+		print 'err=', err
+		if i > 20:
+			i = 0
+			plt.scatter(x, y)
+			pr = predict(x, th0, th1)
+			plt.scatter(x, pr,c='g')
+			plt.show()
 		i += 1
-		# a = input(':')
-		print('\n')
-		plt.scatter(x, y)
-		pr = predict(x, th0, th1)
-		plt.scatter(x, pr,c='g')
-		plt.show()
+		# a = raw_input(':')
+		# if a == 'y':
+			# break
+		# print('\n')
+		# plt.scatter(x, y)
+		# pr = predict(x, th0, th1)
+		# plt.scatter(x, pr,c='g')
+		# plt.show()
 	return th0, th1
 
-# def trainModel(x, y, learning_rate,th0, th1):
-
-# 	try:
-# 		err = predict_MSE(x, y, th0, th1)
-# 		lerr = err + 1
-# 		N = learning_rate
-# 		while err > 0.00001:
-# 			n_th0, n_th1 = give_gradient(x,y, th0,th1)
-# 			th0 = th0 - N*( n_th0)
-# 			th1 = th1 - N*( n_th1)
-# 			lerr = err
-# 			err = predict_MSE(x, y, th0, th1)
-# 			print('err=', err)
-# 			if err/lerr < 0.000001:
-# 				print ('err/last_err < 0.000001')
-# 			if err < lerr:
-# 				lerr = err
-# 			else:
-# 				break
-# 	except:
-# 		print('\nException')
-# 	return th0, th1
 
 
-
-
-
-
-def graph(l_km, l_price, th0, th1):
+def graph(l_x, l_y, th0, th1, maxx_x, minn_x, maxx_y, minn_y, line ):
+	# plt.scatter(l_x, l_y)
+	# pr = predict(l_x, th0, th1)
+	# plt.scatter(l_x, pr,c='g')
+	# plt.show()
 	root = T.Tk()
-	canv = T.Canvas(root, width = 1000, height = 1000, bg = "lightblue")
-	canv.create_line(3,1000,3,0,width=2,arrow='last') 
-	canv.create_line(0,997,1000,997,width=2,arrow='last')
-	maxx_km = max(l_km)
-	minn_km = min(l_km)
-	maxx_price = max(l_price)
-	minn_price = min(l_price)
-	
-	rz = maxx_km - minn_km
-	if rz == 0:
-		ERR('Error: max - min = 0')
-	rz /= 20
-	i = 10
+	canv = T.Canvas(root, width = 1000, height = 1000, bg = "white")
+	canv.create_line(8,998,8,2,width=2,arrow='last') 
+	canv.create_line(8,998,998,998,width=2,arrow='last')
 
-	start = minn_km
-	while start < maxx_km-rz-1:
-		# print('start',start)
-		canv.create_text(30,1000-i,text = int(start))
-		canv.create_line(0,1000-i,6,i,width=2, fill = 'black')
-		start += rz
-		i += 50
-	# exit()
-	rz = maxx_price - minn_price
-	if rz == 0:
-		ERR('Error: max - min = 0')
-	rz /= 10
-	i = 100
-	start = minn_price + rz
-	while start < maxx_price:
-		canv.create_text(i,980,text = int(start))
-		canv.create_line(i,994,i,1000,width=2, fill = 'black')
-		start += rz
-		i += 100
+	if max(l_x) == 1 and min(l_x) == 0 and max(l_y) == 1 and min(l_y) == 0:
 
-	lens = len(l_price)
-	i = 0
-	while i < lens:
-		y = 1000-((float(l_km[i] - minn_km) / (maxx_km - minn_km))*1000)
-		x = (float(l_price[i] - minn_price) / (maxx_price - minn_price))*1000
-		canv.create_oval(x, y, x + 10, y + 10, fill = 'black')
-		i += 1
+		start = 0.1
+		while start < 0.9:
+			print 'start',start
+			txt = minn_y + start * (maxx_y - minn_y)
+			canv.create_text(30,1000-(start * 1000),text = int(txt))
+			canv.create_line(6,1000-(start * 1000),10,1000-(start * 1000),width=2, fill = 'black')
+			start += 0.1
+		
+		
+		start = 0.1
+		while start < 0.9:
+			txt = minn_x + start * (maxx_x - minn_x)
+			canv.create_text(start * 1000,980,text = int(txt))
+			canv.create_line(start * 1000,994,start * 1000,1000,width=2, fill = 'black')
+			start += 0.1
+
+		lens = len(l_y)
+		i = 0
+		while i < lens:
+			y = (1-l_y[i]) * 1000
+			x = l_x[i] * 1000
+			canv.create_oval(x, y, x + 5, y + 5, fill = 'black')
+			i += 1
+
+
 	
-	pr = predict(l_km, th0, th1)
-	maxx_price = max(pr)
-	minn_price = min(pr)
-	if maxx_price - minn_price == 0:
-		ERR('Error: predicted max - min = 0')
-	lens = len(l_price)
-	i = 0
-	lsty = []
-	lstx = []
-	while i < lens:
-		y = 1000-((float(l_km[i] - minn_km) / (maxx_km - minn_km))*1000)
-		x = (float(pr[i] - minn_price) / (maxx_price - minn_price))*1000
-		print('x =', x, 'pr = ',pr[i], 'must=',l_price[i])
-		lsty.append(y)
-		lstx.append(x)
-		canv.create_oval(x, y, x + 10, y + 10, fill = 'orange')
-		i += 1
+		pr = predict(l_x, th0, th1)
+		x0 = 0
+		y0 = th0 + th1 * x0
+		x1 = 1
+		y1 = th0 + th1 * x1
+		
+		if line = 'l':
+			canv.create_line(0,(1-y0) * 1000,x1*1000,(1-y1) * 1000,width=2, fill = 'orange')
+		else:
+			lens = len(l_y)
+			i = 0
+			while i < lens:
+				y = (1 - pr[i])*1000
+				x = l_x[i] * 1000
+				print('x =', x, 'pr = ',pr[i], 'must=',l_y[i])
+				canv.create_line(x+3,y,x+3,(1-l_y[i]) * 1000,width=2, fill = 'black')
+				canv.create_oval(x-2, y-5, x + 8, y + 5, fill = 'orange')
+				i += 1
+		
+		canv.pack()
+		root.mainloop() 
+	exit()
 	# minx = lstx.index(min(lstx))
 	# maxx = lstx.index(max(lstx))
 
 	# canv.create_line(lstx[minx],lsty[minx],lstx[maxx],lsty[maxx],width=5, fill = 'orange')
-	canv.pack()
-	root.mainloop() 
+	# canv.pack()
+	# root.mainloop() 
 
 def load_theta():
 	th0, th1 = 0, 0
@@ -382,3 +337,6 @@ def return_list_from_data(name_csv):
 	if len(l_x) == 0 or len(l_y) == 0 or len(l_y) != len(l_x):
 		ERR('Error: zero size')
 	return l_x, l_y
+
+
+
