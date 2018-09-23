@@ -43,10 +43,10 @@ if __name__ == "__main__":
 	# th0, th1 = trainModel(l_x,l_y, l_r,th0, th1)
 	th0, th1 = trainModel_auto_l_r(l_x,l_y,th0, th1)
 	print ('MSE2 = %.13f'%MSE(predict(l_x, th0, th1), l_y))
-
-	graph(l_x, l_y, th0, th1, maxx_x, minn_x, maxx_y, minn_y)
+	
+	graph(l_x, l_y, th0, th1, maxx_x, minn_x, maxx_y, minn_y, 'l')
 
 	# ans = raw_input('Save theta Y-Yes: ')
 	# ans = input('Save theta Y-Yes: ')##python3
 	# if ans == 'Y' or ans == 'y':
-	# save_theta(th0, th1)
+	# save_theta(th0, th1, maxx_x, minn_x, maxx_y, minn_y)

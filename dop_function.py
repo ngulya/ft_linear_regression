@@ -116,7 +116,6 @@ def return_N(n_th0, n_th1, th0,th1, x,y):
 				else:
 					return N_smll
 			return N_smll
-import random as rd
 
 def trainModel_auto_l_r(x, y,th0, th1):
 
@@ -172,11 +171,7 @@ def trainModel(x, y, learning_rate,th0, th1):
 	print('th0 = ',th0, 'th1=',th1)
 	err = predict_MSE(x, y, th0, th1)
 	print('err=', err)
-	print('\n\n')
-	# plt.scatter(x, y)
-	# pr = predict(x, th0, th1)
-	# plt.scatter(x, pr,c='g')
-	# plt.show()
+	# print('\n\n')
 
 	i = 1
 	while err > 0.00001:
@@ -207,11 +202,14 @@ def trainModel(x, y, learning_rate,th0, th1):
 
 
 
-def graph(l_x, l_y, th0, th1, maxx_x, minn_x, maxx_y, minn_y, line ):
-	# plt.scatter(l_x, l_y)
-	# pr = predict(l_x, th0, th1)
-	# plt.scatter(l_x, pr,c='g')
-	# plt.show()
+def graph(l_x, l_y, th0, th1, maxx_x, minn_x, maxx_y, minn_y, line):
+	if line == 'standart':
+		plt.scatter(l_x, l_y)
+		pr = predict(l_x, th0, th1)
+		plt.scatter(l_x, pr,c='g')
+		plt.show()
+		return
+	
 	root = T.Tk()
 	canv = T.Canvas(root, width = 1000, height = 1000, bg = "white")
 	canv.create_line(8,998,8,2,width=2,arrow='last') 
@@ -221,7 +219,6 @@ def graph(l_x, l_y, th0, th1, maxx_x, minn_x, maxx_y, minn_y, line ):
 
 		start = 0.1
 		while start < 0.9:
-			print 'start',start
 			txt = minn_y + start * (maxx_y - minn_y)
 			canv.create_text(30,1000-(start * 1000),text = int(txt))
 			canv.create_line(6,1000-(start * 1000),10,1000-(start * 1000),width=2, fill = 'black')
@@ -243,15 +240,13 @@ def graph(l_x, l_y, th0, th1, maxx_x, minn_x, maxx_y, minn_y, line ):
 			canv.create_oval(x, y, x + 5, y + 5, fill = 'black')
 			i += 1
 
-
-	
 		pr = predict(l_x, th0, th1)
 		x0 = 0
 		y0 = th0 + th1 * x0
 		x1 = 1
 		y1 = th0 + th1 * x1
 		
-		if line = 'l':
+		if line == 'line':
 			canv.create_line(0,(1-y0) * 1000,x1*1000,(1-y1) * 1000,width=2, fill = 'orange')
 		else:
 			lens = len(l_y)
@@ -259,21 +254,12 @@ def graph(l_x, l_y, th0, th1, maxx_x, minn_x, maxx_y, minn_y, line ):
 			while i < lens:
 				y = (1 - pr[i])*1000
 				x = l_x[i] * 1000
-				print('x =', x, 'pr = ',pr[i], 'must=',l_y[i])
-				canv.create_line(x+3,y,x+3,(1-l_y[i]) * 1000,width=2, fill = 'black')
+				canv.create_line(x+3,y,x+3,(1-l_y[i]) * 1000,width=1, fill = 'black')
 				canv.create_oval(x-2, y-5, x + 8, y + 5, fill = 'orange')
 				i += 1
-		
 		canv.pack()
 		root.mainloop() 
-	exit()
-	# minx = lstx.index(min(lstx))
-	# maxx = lstx.index(max(lstx))
-
-	# canv.create_line(lstx[minx],lsty[minx],lstx[maxx],lsty[maxx],width=5, fill = 'orange')
-	# canv.pack()
-	# root.mainloop() 
-
+	
 def load_theta():
 	th0, th1 = 0, 0
 	try:
@@ -300,14 +286,18 @@ def load_theta():
 	return th0, th1, True
 
 
-def save_theta(th0, th1):
+def save_theta(th0, th1,maxx_x, minn_x, maxx_y, minn_y):
 	try:
 		in_file = open('theta', "w")
 	except:
 		ERR('Error: cant read file: theta')
 
 	in_file.write(str(th0) + '\n')
-	in_file.write(str(th1))
+	in_file.write(str(th1) + '\n')
+	in_file.write(str(maxx_x) + '\n')
+	in_file.write(str(minn_x) + '\n')
+	in_file.write(str(maxx_y) + '\n')
+	in_file.write(str(minn_y))
 	in_file.close()
 
 
@@ -317,7 +307,7 @@ def return_list_from_data(name_csv):
 	try:
 		in_file = open(name_csv, "r")
 	except:
-		ERR('Error: cant read file:' + name_csv)
+		ERR('Error: cant read file: ' + name_csv)
 	num_str = 0
 	frst = 0
 	for line in in_file.readlines():
@@ -330,8 +320,8 @@ def return_list_from_data(name_csv):
 				ERR('Error: num str = ' + str(frst + 1))
 			num_str += 1
 		else:
-			l_x.append(int(line[0]))
-			l_y.append(int(line[1]))
+			l_x.append(float(line[0]))
+			l_y.append(float(line[1]))
 		frst += 1
 	in_file.close()
 	if len(l_x) == 0 or len(l_y) == 0 or len(l_y) != len(l_x):
