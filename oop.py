@@ -7,6 +7,8 @@ import Tkinter as T
 # import matplotlib.pyplot as plt
 
 
+
+
 def ERR(st):
 	print(st)
 	sys.exit(1)
@@ -25,6 +27,10 @@ def MSE(have, must):
 
 def RMSE(have, must):
 	return (MSE(have, must)**0.5)
+
+
+
+
 
 def estimatePrice(mileage,th0, th1):
 	return th0 + (th1 * mileage)
