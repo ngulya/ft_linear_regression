@@ -4,345 +4,363 @@ from time import time
 import sys
 import numpy as np
 import Tkinter as T
-# import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
+
+class ft_linear_regression:
+
+	_th0 = 0
+	_th1 = 0
+	_max_x = 0
+	_min_x = 0
+	_max_y = 0
+	_min_y = 0
+	_learning_rate = 0
+
+	def __init__(self):
+		pass
+	def return_max_min(self, x, y):
+		self._max_x = max(x)
+		self._min_x = min(x)
+		self._max_y = max(y)
+		self._min_y = min(y)
+
+	def ERR(self, st):
+		print st
+		sys.exit(1)
+
+	def load_x_y(self, x, y):
+		self.x = x
+		self.y = y
+
+	def MSE(self, have, must):
+		print type(have)
+		if isinstance(have, list) == False:
+			return (have-must)**2
+		lens = len(have) - 1
+		e = 0
+		while lens >= 0:
+			rz = have[lens] - must[lens]
+			e += (rz * rz)
+			lens -= 1
+		e = e / len(have)
+		return e
+
+	def RMSE(self, have, must):
+		return (self.MSE(have, must)**0.5)
+
+	def normalize_x(self, l_x):
+		x = []
+		
+		for i in l_x:
+			x.append(i)
+
+		i = 0
+		while i < len(x):
+			x[i] = float(x[i] - self._min_x)/(self._max_x - self._min_x)
+			i += 1
+		return x
+
+	def normalize_y(self, l_y):
+
+		y = []
+		for i in l_y:
+			y.append(i)
+
+		i = 0
+		while i < len(y):
+			y[i] = float(y[i] - self._min_y)/(self._max_y - self._min_y)
+			i += 1
+		return y
+
+	def unnormalize_x(self, x):
+		max_min = self._max_x - self._min_x
+		
+		if isinstance(x, list) == False:
+			return self._min_x + (x * (max_min))
+		
+		x_new = []
+		for i in x:
+			x_new.append(self._min_x + (i * (max_min)))
+		return x_new
+
+	def unnormalize_y(self, y):
+		max_min = self._max_y - self._min_y
+		
+		if isinstance(y, list) == False:
+			return self._min_y + (y * (max_min))
+
+		y_new = []
+		for i in y:
+			y_new.append(self._min_y + (i * (max_min)))
+		return y_new
+
+	def estimatePrice(self, mileage):
+		return self._th0 + (self._th1 * mileage)
+
+
+	def predict(self, x):
+		if self._max_x == 0 and self._min_x == 0:
+			print 'Error: model no train'
+			return 0, 0
+		if isinstance(x, list) == False:
+			x_new = float(x - self._min_x)/(self._max_x - self._min_x)
+			y_new = self._th0 + (self._th1 * x_new)
+			return self.unnormalize_y(y_new), 1
+		i = 0
+		lst = []
+		while i < len(x):
+			tmp = float(x[i] - self._min_x)/(self._max_x - self._min_x)
+			lst.append(self._th0 + (self._th1 * tmp))
+			i += 1
+		return self.unnormalize_y(lst), len(lst)
+
+	def predict_MSE(self, x, y):
+		ans = 0
+		i = 0
+		if isinstance(x, list) == False:
+			p =  self._th0 + (self._th1 * x[i])
+			ans += (p-y[i])**2
+			return ans, 1
+		lens = len(x)
+		while i < lens:
+			p =  (self._th0 + (self._th1 * x[i])) - y[i]
+			ans += (p*p)
+			i += 1
+		return ans / i, len(x)
+
+	def from_input_to_int(self):
+		self._learning_rate = 0.1
+		bad = True
+		while bad:
+			tmp = raw_input('\ninput learning rate > 0 or learning rate == -1: ')
+			try:
+				float(tmp)
+			except Exception as e:
+				self._learning_rate = 0.1
+				print 'learning rate = 0.1'
+				return
+			if float(tmp) == -1:
+				self._learning_rate = -1
+				return
+			if float(tmp) >= 0 and float(tmp) < 10:
+				self._learning_rate = float(tmp)
+				return
+			else:
+				print 'Error: learning rate > 0 and  learning srate < 10'
+
+	def give_gradient(self, x,y):
+		lens = len(x)
+		if lens == 1:
+			# tmp = (self._th0 + self._th1*x[i] - y[i])
+			tmp = (self.estimatePrice(x) - y)
+			sums0 += tmp
+			sums1 += (tmp * x[i])
+			return sums0, sums1, 1
+		i = 0
+		sums0 = 0
+		sums1 = 0
+		while i < lens:
+			tmp = (self.estimatePrice(x[i]) - y[i])
+			# tmp = (self._th0 + self._th1*x[i] - y[i])
+			sums0 += tmp
+			sums1 += (tmp * x[i])
+			i += 1
+		n__th0 = (sums0/i)
+		n__th1 = (sums1/i)
+		return n__th0, n__th1, len(x)
 
 
 
+	def trainModel(self, l_x, l_y):
+		self.from_input_to_int()
+		if self._max_x == 0 and self._max_y == 0 and self._min_y == 0 and self._min_x == 0:
+			self.return_max_min(l_x, l_y)
+		x = self.normalize_x(l_x)
+		y = self.normalize_y(l_y)
+		ans = raw_input('step by step press Y-Yes: ')
+		step = False
+		if ans == 'y' or ans == 'Y': step = True
+		if step:
+			print 'For stop study input Y-Yes'
+		err, _ = self.predict_MSE(x, y)
 
-def ERR(st):
-	print(st)
-	sys.exit(1)
-
-
-def MSE(have, must):
-
-	lens = len(have) - 1
-	e = 0
-	while lens >= 0:
-		rz = have[lens] - must[lens]
-		e += (rz * rz)
-		lens -= 1
-	e = e / len(have)
-	return e
-
-def RMSE(have, must):
-	return (MSE(have, must)**0.5)
-
-
-
-
-
-def estimatePrice(mileage,th0, th1):
-	return th0 + (th1 * mileage)
-
-
-def predict(x, th0, th1):
-	lst = []
-	for i in x:
-		p =  th0 + (th1 * i)
-		lst.append(p)
-	return lst
-
-
-def predict_MSE(x,y, th0, th1):
-	ans = 0
-	i = 0
-	lens = len(x)
-	while i < lens:
-		p =  th0 + (th1 * x[i])
-		ans += (p-y[i])**2
-		i += 1
-
-	return ans / i
-
-
-
-def from_input_to_int():
-	learning_rate = 0.1
-	bad = True
-	while bad:
-		# tmp = raw_input('\ninput learning rate > 0: ')
-
-		# tmp = input('\ninput learning rate > 0: ')##python3
-		tmp = raw_input('\ninput learning rate > 0 or learning_rate == -1: ')
+		i = 1
+		print 'err =',err
+		lerr = err + 1
+		while err > 0.00001:
+			n__th0, n__th1,_ = self.give_gradient(x,y)
+			self._th0 = self._th0 - (self._learning_rate*n__th0)
+			self._th1 = self._th1 - (self._learning_rate*n__th1)
+			err, _ = self.predict_MSE(x, y)
+			if lerr < err:
+				break
+			else:
+				lerr = err
+			if  err > 10e+30:
+				self.ERR('Too mush learning rate')
+			if step:
+				print 'err =', err
+				a = raw_input('')
+				if a == 'y' or a == 'Y':
+					break
+		print 'err =', err
+		
+	def load_model(self, name_csv):
+		_th0 = 0
+		_th1 = 0
+		_max_x = 0
+		_min_x = 0
+		_max_y = 0
+		_min_y = 0
 		try:
-			float(tmp)
-		except Exception as e:
-			learning_rate = 0.1
-			print ('learning_rate = 0.1')
-			return learning_rate
-		if float(tmp) == -1:
-			return -1
-		if float(tmp) >= 0 and float(tmp) < 10:
-			return float(tmp)
-		else:
-			print ('Error: g > 0 and g < 10')
-	return learning_rate
-
-
-def give_gradient(x,y, th0, th1):
-	lens = len(x)
-	i = 0
-	sums0 = 0
-	sums1 = 0
-	while i < lens:
-		tmp = (th0 + th1*x[i] - y[i])
-		sums0 += tmp
-		sums1 += (tmp * x[i])
-		i += 1
-	n_th0 = (sums0/i)
-	n_th1 = (sums1/i)
-	return n_th0, n_th1
-
-def return_N(n_th0, n_th1, th0,th1, x,y):
-
-	err = predict_MSE(x, y, th0, th1)
-	N = 1
-	now_err = predict_MSE(x, y, th0 - N*( n_th0), th1 - N*( n_th1))
-	if now_err < err:
-		return N
-	else:
-		N_smll = N / 2
-		now_err_smll = predict_MSE(x, y, th0 - N_smll*( n_th0), th1 - N_smll*( n_th1))
-		if now_err_smll < now_err:
-			while now_err_smll >= err:
-				N_tmp = N_smll / 2
-				tmp = predict_MSE(x, y, th0 - N_tmp*( n_th0), th1 - N_tmp*( n_th1))
-				if tmp < now_err_smll:
-					now_err_smll = tmp
-					N_smll = N_tmp
+			in_file = open(name_csv, "r")
+		except:
+			print '\nError: load file ' + name_csv + '\n'
+			return False
+		zr = 0
+		for line in in_file.readlines():
+			try:
+				float(line)
+			except Exception as e:
+				print '\nUnvalid ' + name_csv + 'file: ' + str(zr + 1) + '\n'
+				return False
+			else:
+				if zr == 0:
+					_th0 = float(line)	
+				elif zr == 1:
+					_th1 = float(line)
+				elif zr == 2:
+					_max_x = float(line)
+				elif zr == 3:
+					_min_x = float(line)
+				elif zr == 4:
+					_max_y = float(line)
+				elif zr == 5:
+					_min_y = float(line)
 				else:
-					return N_smll
-			return N_smll
-		else:
-			while now_err_smll >= err:
-				N_tmp = N_smll * 2
-				tmp = predict_MSE(x, y, th0 - N_tmp*( n_th0), th1 - N_tmp*( n_th1))
-				if tmp < now_err_smll:
-					now_err_smll = tmp
-					N_smll = N_tmp
-				else:
-					return N_smll
-			return N_smll
+					print '\nError: read ' + name_csv + '\n'
+					return False
+				zr += 1
+		self._th0 = _th0
+		self._th1 = _th1
+		self._max_x = _max_x
+		self._min_x = _min_x
+		self._max_y = _max_y
+		self._min_y = _min_y
+		self._min_y
+		return True
 
-def trainModel_auto_l_r(x, y,th0, th1):
+	def save_model(self, name_csv):
+		try:
+			in_file = open(name_csv, "w")
+		except:
+			print 'Error: cant read file: '+ name_csv
+			return
 
-	err = predict_MSE(x, y, th0, th1)
-	lerr = err + 1
-	while err > 0.0000001:
-		n_th0, n_th1 = give_gradient(x,y, th0,th1)
-		N = return_N(n_th0, n_th1, th0,th1, x,y)
-		th0 = th0 - N*( n_th0)
-		th1 = th1 - N*( n_th1)
-		lerr = err
-		err = predict_MSE(x, y, th0, th1)
-		print 'err =', err, 'learning rate =',N
-		if err < lerr or err/lerr < 0.000001:
-			lerr = err
-		else:
-			break
-	return th0, th1
+		in_file.write(str(self._th0) + '\n')
+		in_file.write(str(self._th1) + '\n')
+		in_file.write(str(self._max_x) + '\n')
+		in_file.write(str(self._min_x) + '\n')
+		in_file.write(str(self._max_y) + '\n')
+		in_file.write(str(self._min_y))
+		in_file.close()
 
 
-def give_gradient2(x,y,th0, th1):
-	lens = len(x)
-	i = 0
-	sums0 = 0
-	sums1 = 0
-	while i < lens:
-		tmp = (estimatePrice(x[i],th0,th1) - y[i])
-		sums0 += tmp
-		sums1 += (tmp * x[i])
-		i += 1
+	def return_list_from_data(self, name_csv):
 
-	n_th0 = (sums0/i)
-	n_th1 = (sums1/i)
-	
-	return n_th0, n_th1
+		l_x, l_y = [],[]
+		try:
+			in_file = open(name_csv, "r")
+		except:
+			print 'Error: cant read file: ' + name_csv
+			return 0,0, False
+		num_str = 0
+		frst = 0
+		for line in in_file.readlines():
+			try:
+				line = line.split(',')
+				float(line[0])
+				float(line[1])
+			except Exception as e:
+				if frst != 0:
+					print 'Error: num str = ' + str(frst + 1)
+					return 0,0, False
+				num_str += 1
+			else:
+				l_x.append(float(line[0]))
+				l_y.append(float(line[1]))
+			frst += 1
+		in_file.close()
+		if len(l_x) == 0 or len(l_y) == 0 or len(l_y) != len(l_x):
+			print 'Error: zero size'
+			return 0,0, False
+		return l_x, l_y, True
+	def graph(self, l_x, l_y, pr_y, line):
+		if line == 'standart':
+			plt.scatter(l_x, l_y, s = 40)
+			plt.scatter(l_x, pr_y,c='g',  s = 40)
+			plt.show()
+			return
+			
+		root = T.Tk()
+		canv = T.Canvas(root, width = 1000, height = 1000, bg = "white")
+		canv.create_line(8,998,8,2,width=2,arrow='last') 
+		canv.create_line(8,998,998,998,width=2,arrow='last')
 
+		max_x = max(l_x)
+		min_x = min(l_x)
 
-
-def trainModel(x, y, learning_rate,th0, th1):
-
-
-	# if th0 == 0 and th1 == 0:
-	# 	minx = x.index(min(x))
-	# 	maxx = x.index(max(x))
-	# 	print('->',minx)
-	# 	x1 = x[minx]
-	# 	x2 = x[maxx]
-	# 	y1 = y[minx]
-	# 	y2 = y[maxx]
-	# 	th0 = ((-x1*(y2-y1))/(x2-x1)) + y1
-	# 	th1 = (y2-y1)/(x2-x1)
-
-	print 'For stop study input Y-Yes'
-	err = predict_MSE(x, y, th0, th1)
-	i = 1
-	while err > 0.00001:
-		n_th0, n_th1 = give_gradient2(x,y, th0,th1)
-		th0 = th0 - learning_rate*( n_th0)
-		th1 = th1 - learning_rate*( n_th1)
-		# print('th0 = ',th0, 'th1=',th1)
-		err = predict_MSE(x, y, th0, th1)
-		if  err > 1e+30:
-			ERR('Too mush learning rate')
-		print 'err=', err
-		# if i > 20:
-		# 	i = 0
-		# 	plt.scatter(x, y)
-		# 	pr = predict(x, th0, th1)
-		# 	plt.scatter(x, pr,c='g')
-		# 	plt.show()
-		# i += 1
-		a = raw_input('')
-		if a == 'y' or a == 'Y':
-			break
-		# print('\n')
-		# plt.scatter(x, y)
-		# pr = predict(x, th0, th1)
-		# plt.scatter(x, pr,c='g')
-		# plt.show()
-	return th0, th1
-
-
-
-def graph(l_x, l_y, th0, th1, maxx_x, minn_x, maxx_y, minn_y, line):
-	if line == 'standart':
-		plt.scatter(l_x, l_y)
-		pr = predict(l_x, th0, th1)
-		plt.scatter(l_x, pr,c='g')
-		plt.show()
-		return
-	
-	root = T.Tk()
-	canv = T.Canvas(root, width = 1000, height = 1000, bg = "white")
-	canv.create_line(8,998,8,2,width=2,arrow='last') 
-	canv.create_line(8,998,998,998,width=2,arrow='last')
-
-	if max(l_x) == 1 and min(l_x) == 0 and max(l_y) == 1 and min(l_y) == 0:
-
-		start = 0.1
-		while start < 0.9:
-			txt = minn_y + start * (maxx_y - minn_y)
-			canv.create_text(30,1000-(start * 1000),text = int(txt))
-			canv.create_line(6,1000-(start * 1000),10,1000-(start * 1000),width=2, fill = 'black')
-			start += 0.1
+		max_y = max(l_y)
+		min_y = min(l_y)
 		
+		if max(pr_y) > max_y: max_y = max(pr_y)
+		if min(pr_y) < min_y: min_y = min(pr_y)
+
+		i = 1
+		rz = (max_y - min_y) / 10
+		start = min_y + rz
+		while i < 10:#Y
+			if rz < 1:
+				txt = '%.5f'%((start))
+			else:
+				txt = '%d'%((start))
+
+			canv.create_text(30,1000-(i * 100),text = int(txt))
+			canv.create_line(6,1000-(i * 100),10,1000-(i * 100),width=2, fill = 'black')
+			start += rz
+			i += 1
+		i = 1
+		rz = (max_x - min_x) / 10
+		start = min_x + rz
+		while i < 10:#X
+			if rz < 1:
+				txt = '%.5f'%((start))
+			else:
+				txt = '%d'%((start))
+			canv.create_text(i * 100,980,text = int(txt))
+			canv.create_line(i * 100,994,i * 100,1000,width=2, fill = 'black')
+			start += rz
+			i += 1
 		
-		start = 0.1
-		while start < 0.9:
-			txt = minn_x + start * (maxx_x - minn_x)
-			canv.create_text(start * 1000,980,text = int(txt))
-			canv.create_line(start * 1000,994,start * 1000,1000,width=2, fill = 'black')
-			start += 0.1
-		# canv.pack()
-		# root.mainloop() 
-		# exit()
 		lens = len(l_y)
 		i = 0
-		while i < lens:
-			y = (1-l_y[i]) * 1000
-			x = l_x[i] * 1000
-			canv.create_oval(x, y, x + 5, y + 5, fill = 'black')
-			i += 1
 
-		pr = predict(l_x, th0, th1)
-		x0 = 0
-		y0 = th0 + th1 * x0
-		x1 = 1
-		y1 = th0 + th1 * x1
+		while i < lens:
+			y1 = ((1-(float(l_y[i]-min_y)/(max_y-min_y))) * 1000)+5
+			x = ((float(l_x[i]-min_x)/(max_x - min_x)) * 1000)+5
+			canv.create_oval(x, y1, x + 7, y1 + 7, fill = 'black')
+			if line != 'line':
+				y2 = ((1-(float(pr_y[i]-min_y)/(max_y-min_y))) * 1000)+5
+				canv.create_line(x+3,y1,x+3,y2,width=1, fill = 'black')
+				canv.create_oval(x, y2, x + 7, y2 + 7, fill = 'orange')
+			i += 1
 		
+		x0 = 0
+		y0 = self._th0 + self._th1 * x0
+		x1 = 1
+		y1 = self._th0 + self._th1 * x1
 		if line == 'line':
-			canv.create_line(0,(1-y0) * 1000,x1*1000,(1-y1) * 1000,width=2, fill = 'orange')
-		else:
-			lens = len(l_y)
-			i = 0
-			while i < lens:
-				y = (1 - pr[i])*1000
-				x = l_x[i] * 1000
-				canv.create_line(x+3,y,x+3,(1-l_y[i]) * 1000,width=1, fill = 'black')
-				canv.create_oval(x-2, y-5, x + 8, y + 5, fill = 'orange')
-				i += 1
+			canv.create_line(0,((1-y0) * 1000),x1*1000,((1-y1) * 1000),width=2, fill = 'orange')
 		canv.pack()
 		root.mainloop() 
-	
-def load_theta():
-	th0, th1 = 0, 0
-	maxx_x = 0
-	minn_x = 0
-	maxx_y = 0
-	minn_y = 0
-	try:
-		in_file = open('theta', "r")
-	except:
-		return 0,0,0,0,0,0,False
-
-	zr = 0
-	for line in in_file.readlines():
-		try:
-			float(line)
-		except Exception as e:
-			ERR('Unvalid theta file: ' + str(zr + 1))
-		else:
-			if zr == 0:
-				th0 = float(line)	
-			elif zr == 1:
-				th1 = float(line)
-			elif zr == 2:
-				maxx_x = float(line)
-			elif zr == 3:
-				minn_x = float(line)
-			elif zr == 4:
-				maxx_y = float(line)
-			elif zr == 5:
-				minn_y = float(line)
-			else:
-				print('Error: read theta')
-				return 0,0, maxx_x,minn_x,maxx_y,minn_y,False
-			zr += 1
-	return th0, th1, maxx_x,minn_x,maxx_y,minn_y,True
-
-
-def save_theta(th0, th1,maxx_x, minn_x, maxx_y, minn_y):
-	try:
-		in_file = open('theta', "w")
-	except:
-		ERR('Error: cant read file: theta')
-
-	in_file.write(str(th0) + '\n')
-	in_file.write(str(th1) + '\n')
-	in_file.write(str(maxx_x) + '\n')
-	in_file.write(str(minn_x) + '\n')
-	in_file.write(str(maxx_y) + '\n')
-	in_file.write(str(minn_y))
-	in_file.close()
-
-
-def return_list_from_data(name_csv):
-
-	l_x, l_y = [],[]
-	try:
-		in_file = open(name_csv, "r")
-	except:
-		ERR('Error: cant read file: ' + name_csv)
-	num_str = 0
-	frst = 0
-	for line in in_file.readlines():
-		try:
-			line = line.split(',')
-			float(line[0])
-			float(line[1])
-		except Exception as e:
-			if frst != 0:
-				ERR('Error: num str = ' + str(frst + 1))
-			num_str += 1
-		else:
-			l_x.append(float(line[0]))
-			l_y.append(float(line[1]))
-		frst += 1
-	in_file.close()
-	if len(l_x) == 0 or len(l_y) == 0 or len(l_y) != len(l_x):
-		ERR('Error: zero size')
-	return l_x, l_y
-
+		
